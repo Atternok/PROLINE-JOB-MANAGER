@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Plus, ChevronRight, ChevronDown } from "lucide-react";
 import { mockBuildings } from "../data/mockData";
 
 export default function CompaniesDashboard() {
   const { buildingId, floorId } = useParams();
+  const router = useRouter();
 
   const [floor, setFloor] = useState<any>(null);
   const [showAddCompany, setShowAddCompany] = useState(false);
@@ -73,7 +74,15 @@ export default function CompaniesDashboard() {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen text-black">
-      {/* FLOOR HEADER */}
+
+      {/* BACK BUTTON */}
+      <button
+        onClick={() => router.push(`/building/${buildingId}`)}
+        className="mb-4 text-blue-600 hover:underline"
+      >
+        ← Back
+      </button>
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">{floor.name}</h1>
 
@@ -85,10 +94,14 @@ export default function CompaniesDashboard() {
         </button>
       </div>
 
-      {/* COMPANIES */}
+      {floor.companies.length === 0 && (
+        <div className="border rounded p-6 bg-white text-gray-500">
+          No companies yet
+        </div>
+      )}
+
       {floor.companies.map((c: any) => (
         <div key={c.id} className="bg-white border rounded p-5 mb-6">
-          {/* COMPANY HEADER */}
           <div className="flex justify-between items-center mb-3">
             <div>
               <h2 className="text-lg font-semibold uppercase">{c.name}</h2>
@@ -105,14 +118,12 @@ export default function CompaniesDashboard() {
             </button>
           </div>
 
-          {/* EMPTY INVOICE STATE */}
           {c.invoices.length === 0 && (
             <p className="text-sm text-gray-500 mb-3">
               No invoices yet
             </p>
           )}
 
-          {/* ADD INVOICE FORM */}
           {showInvoiceFormFor === c.id && (
             <InvoiceForm
               onCancel={() => setShowInvoiceFormFor(null)}
@@ -120,7 +131,6 @@ export default function CompaniesDashboard() {
             />
           )}
 
-          {/* INVOICES */}
           {c.invoices.map((inv: any) => {
             const open = expandedInvoices.has(inv.id);
 
@@ -177,14 +187,13 @@ export default function CompaniesDashboard() {
         </div>
       ))}
 
-      {/* ADD COMPANY MODAL */}
       {showAddCompany && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
           <div className="bg-white p-6 rounded w-[400px]">
             <h2 className="font-semibold mb-4">Add Company</h2>
 
             <input
-              className="border p-2 w-full mb-4"
+              className="border p-2 w-full text-black bg-white mb-4"
               placeholder="Company name"
               value={companyName}
               onChange={e => setCompanyName(e.target.value)}
@@ -211,8 +220,6 @@ export default function CompaniesDashboard() {
   );
 }
 
-/* ---------- FORMS ---------- */
-
 function InvoiceForm({ onAdd, onCancel }: any) {
   const [name, setName] = useState("");
   const [value, setValue] = useState("");
@@ -222,9 +229,9 @@ function InvoiceForm({ onAdd, onCancel }: any) {
   return (
     <div className="border rounded p-4 mb-4 bg-gray-50">
       <div className="flex gap-2 flex-wrap mb-3">
-        <input className="border p-2" placeholder="Invoice Name" onChange={e => setName(e.target.value)} />
-        <input type="number" className="border p-2" placeholder="Value" onChange={e => setValue(e.target.value)} />
-        <input type="date" className="border p-2" onChange={e => setDate(e.target.value)} />
+        <input className="border p-2 text-black bg-white" placeholder="Invoice Name" onChange={e => setName(e.target.value)} />
+        <input type="number" className="border p-2 text-black bg-white" placeholder="Value" onChange={e => setValue(e.target.value)} />
+        <input type="date" className="border p-2 text-black bg-white" onChange={e => setDate(e.target.value)} />
         <input type="file" accept="application/pdf" onChange={e => setFile(e.target.files?.[0] || null)} />
       </div>
 
@@ -258,9 +265,9 @@ function BillForm({ onAdd }: any) {
 
   return (
     <div className="flex gap-2 flex-wrap mt-2">
-      <input className="border p-2" placeholder="Bill Name" onChange={e => setName(e.target.value)} />
-      <input type="number" className="border p-2" placeholder="Value" onChange={e => setValue(e.target.value)} />
-      <input type="date" className="border p-2" onChange={e => setDate(e.target.value)} />
+      <input className="border p-2 text-black bg-white" placeholder="Bill Name" onChange={e => setName(e.target.value)} />
+      <input type="number" className="border p-2 text-black bg-white" placeholder="Value" onChange={e => setValue(e.target.value)} />
+      <input type="date" className="border p-2 text-black bg-white" onChange={e => setDate(e.target.value)} />
       <input type="file" accept="application/pdf" onChange={e => setFile(e.target.files?.[0] || null)} />
       <button
         onClick={() =>

@@ -1,0 +1,2 @@
+cd "E:\PROLINE APP\PROLINE-JOB-MANAGER"
+npm run dev 
