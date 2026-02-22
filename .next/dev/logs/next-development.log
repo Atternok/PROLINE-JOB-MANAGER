@@ -1,2 +1,317 @@
-[00:00:01.779] Server  LOG     ✓ Ready in 1240ms
-[00:00:07.572] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:01.806] Server  LOG     ✓ Ready in 1267ms
+[00:00:02.301] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:06.969] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:45.031] Server  LOG     ✓ Compiled in 1115ms
+[00:15:27.992] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:32:55.773] Server  LOG     ✓ Compiled in 73ms
+[00:46:59.881] Server  ERROR   ⨯ ./src/app/building/[buildingId]/page.tsx:3:1
+Module not found: Can't resolve '../../components/FloorsDashboard'
+  1 | "use client";
+  2 |
+> 3 | import { FloorsDashboard } from "../../components/FloorsDashboard";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | export default function BuildingPage() {
+  6 |   return <FloorsDashboard />;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/building/[buildingId]/page.tsx [Client Component Browser]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/building/[buildingId]/page.tsx [Client Component SSR]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:46:59.889] Server  ERROR   ⨯ ./src/app/building/[buildingId]/page.tsx:3:1
+Module not found: Can't resolve '../../components/FloorsDashboard'
+  1 | "use client";
+  2 |
+> 3 | import { FloorsDashboard } from "../../components/FloorsDashboard";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | export default function BuildingPage() {
+  6 |   return <FloorsDashboard />;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/building/[buildingId]/page.tsx [Client Component Browser]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/building/[buildingId]/page.tsx [Client Component SSR]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:46:59.890] Server  ERROR   ⨯ ./src/app/building/[buildingId]/page.tsx:3:1
+Module not found: Can't resolve '../../components/FloorsDashboard'
+  1 | "use client";
+  2 |
+> 3 | import { FloorsDashboard } from "../../components/FloorsDashboard";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | export default function BuildingPage() {
+  6 |   return <FloorsDashboard />;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/building/[buildingId]/page.tsx [Client Component Browser]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/building/[buildingId]/page.tsx [Client Component SSR]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:46:59.892] Server  ERROR   ⨯ ./src/app/building/[buildingId]/page.tsx:3:1
+Module not found: Can't resolve '../../components/FloorsDashboard'
+  1 | "use client";
+  2 |
+> 3 | import { FloorsDashboard } from "../../components/FloorsDashboard";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | export default function BuildingPage() {
+  6 |   return <FloorsDashboard />;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/building/[buildingId]/page.tsx [Client Component Browser]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/building/[buildingId]/page.tsx [Client Component SSR]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:46:59.895] Server  ERROR   ⨯ ./src/app/building/[buildingId]/page.tsx:3:1
+Module not found: Can't resolve '../../components/FloorsDashboard'
+  1 | "use client";
+  2 |
+> 3 | import { FloorsDashboard } from "../../components/FloorsDashboard";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | export default function BuildingPage() {
+  6 |   return <FloorsDashboard />;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/building/[buildingId]/page.tsx [Client Component Browser]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/building/[buildingId]/page.tsx [Client Component SSR]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:46:59.896] Server  ERROR   ⨯ ./src/app/building/[buildingId]/page.tsx:3:1
+Module not found: Can't resolve '../../components/FloorsDashboard'
+  1 | "use client";
+  2 |
+> 3 | import { FloorsDashboard } from "../../components/FloorsDashboard";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | export default function BuildingPage() {
+  6 |   return <FloorsDashboard />;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/building/[buildingId]/page.tsx [Client Component Browser]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/building/[buildingId]/page.tsx [Client Component SSR]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:46:59.897] Server  ERROR   ⨯ ./src/app/building/[buildingId]/page.tsx:3:1
+Module not found: Can't resolve '../../components/FloorsDashboard'
+  1 | "use client";
+  2 |
+> 3 | import { FloorsDashboard } from "../../components/FloorsDashboard";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | export default function BuildingPage() {
+  6 |   return <FloorsDashboard />;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/building/[buildingId]/page.tsx [Client Component Browser]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/building/[buildingId]/page.tsx [Client Component SSR]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:46:59.899] Server  ERROR   ⨯ ./src/app/building/[buildingId]/page.tsx:3:1
+Module not found: Can't resolve '../../components/FloorsDashboard'
+  1 | "use client";
+  2 |
+> 3 | import { FloorsDashboard } from "../../components/FloorsDashboard";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | export default function BuildingPage() {
+  6 |   return <FloorsDashboard />;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/building/[buildingId]/page.tsx [Client Component Browser]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/building/[buildingId]/page.tsx [Client Component SSR]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:46:59.900] Server  ERROR   ⨯ ./src/app/building/[buildingId]/page.tsx:3:1
+Module not found: Can't resolve '../../components/FloorsDashboard'
+  1 | "use client";
+  2 |
+> 3 | import { FloorsDashboard } from "../../components/FloorsDashboard";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | export default function BuildingPage() {
+  6 |   return <FloorsDashboard />;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/building/[buildingId]/page.tsx [Client Component Browser]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/building/[buildingId]/page.tsx [Client Component SSR]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:46:59.902] Server  ERROR   ⨯ ./src/app/building/[buildingId]/page.tsx:3:1
+Module not found: Can't resolve '../../components/FloorsDashboard'
+  1 | "use client";
+  2 |
+> 3 | import { FloorsDashboard } from "../../components/FloorsDashboard";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | export default function BuildingPage() {
+  6 |   return <FloorsDashboard />;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/building/[buildingId]/page.tsx [Client Component Browser]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/building/[buildingId]/page.tsx [Client Component SSR]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:46:59.903] Server  ERROR   ⨯ ./src/app/building/[buildingId]/page.tsx:3:1
+Module not found: Can't resolve '../../components/FloorsDashboard'
+  1 | "use client";
+  2 |
+> 3 | import { FloorsDashboard } from "../../components/FloorsDashboard";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | export default function BuildingPage() {
+  6 |   return <FloorsDashboard />;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/building/[buildingId]/page.tsx [Client Component Browser]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/building/[buildingId]/page.tsx [Client Component SSR]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:46:59.905] Server  ERROR   ⨯ ./src/app/building/[buildingId]/page.tsx:3:1
+Module not found: Can't resolve '../../components/FloorsDashboard'
+  1 | "use client";
+  2 |
+> 3 | import { FloorsDashboard } from "../../components/FloorsDashboard";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | export default function BuildingPage() {
+  6 |   return <FloorsDashboard />;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/building/[buildingId]/page.tsx [Client Component Browser]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/building/[buildingId]/page.tsx [Client Component SSR]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:46:59.922] Server  LOG     ✓ Compiled in 57ms
+[00:47:00.464] Browser ERROR   ./src/app/building/[buildingId]/page.tsx:3:1
+Module not found: Can't resolve '../../components/FloorsDashboard'
+  1 | "use client";
+  2 |
+> 3 | import { FloorsDashboard } from "../../components/FloorsDashboard";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 |
+  5 | export default function BuildingPage() {
+  6 |   return <FloorsDashboard />;
+
+Import traces:
+  Client Component Browser:
+    ./src/app/building/[buildingId]/page.tsx [Client Component Browser]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/building/[buildingId]/page.tsx [Client Component SSR]
+    ./src/app/building/[buildingId]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:47:40.855] Server  LOG     ✓ Compiled in 42ms
+[00:55:39.603] Server  LOG     ✓ Compiled in 52ms

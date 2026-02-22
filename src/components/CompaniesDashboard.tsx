@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Plus, ChevronRight, ChevronDown } from "lucide-react";
+import { Plus, ChevronRight, ChevronDown, Trash } from "lucide-react";
 import { mockBuildings } from "../data/mockData";
 
 export default function CompaniesDashboard() {
@@ -23,6 +23,8 @@ export default function CompaniesDashboard() {
 
   if (!floor) return null;
 
+  const refresh = () => setFloor({ ...floor });
+
   const addCompany = () => {
     if (!companyName.trim()) return;
 
@@ -34,9 +36,15 @@ export default function CompaniesDashboard() {
       invoices: []
     });
 
-    setFloor({ ...floor });
+    refresh();
     setCompanyName("");
     setShowAddCompany(false);
+  };
+
+  const deleteCompany = (companyId: string) => {
+    if (!confirm("Delete this company?")) return;
+    floor.companies = floor.companies.filter((c: any) => c.id !== companyId);
+    refresh();
   };
 
   const toggleInvoice = (id: string) => {
@@ -55,8 +63,18 @@ export default function CompaniesDashboard() {
       bills: []
     });
 
-    setFloor({ ...floor });
+    refresh();
     setShowInvoiceFormFor(null);
+  };
+
+  const deleteInvoice = (companyId: string, invoiceId: string) => {
+    if (!confirm("Delete this invoice?")) return;
+
+    const company = floor.companies.find((c: any) => c.id === companyId);
+    if (!company) return;
+
+    company.invoices = company.invoices.filter((i: any) => i.id !== invoiceId);
+    refresh();
   };
 
   const addBill = (companyId: string, invoiceId: string, data: any) => {
@@ -69,13 +87,23 @@ export default function CompaniesDashboard() {
       ...data
     });
 
-    setFloor({ ...floor });
+    refresh();
+  };
+
+  const deleteBill = (companyId: string, invoiceId: string, billId: string) => {
+    if (!confirm("Delete this bill?")) return;
+
+    const company = floor.companies.find((c: any) => c.id === companyId);
+    const invoice = company?.invoices.find((i: any) => i.id === invoiceId);
+    if (!invoice) return;
+
+    invoice.bills = invoice.bills.filter((b: any) => b.id !== billId);
+    refresh();
   };
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen text-black">
 
-      {/* BACK BUTTON */}
       <button
         onClick={() => router.push(`/building/${buildingId}`)}
         className="mb-4 text-blue-600 hover:underline"
@@ -102,6 +130,7 @@ export default function CompaniesDashboard() {
 
       {floor.companies.map((c: any) => (
         <div key={c.id} className="bg-white border rounded p-5 mb-6">
+
           <div className="flex justify-between items-center mb-3">
             <div>
               <h2 className="text-lg font-semibold uppercase">{c.name}</h2>
@@ -110,12 +139,21 @@ export default function CompaniesDashboard() {
               </p>
             </div>
 
-            <button
-              onClick={() => setShowInvoiceFormFor(c.id)}
-              className="bg-blue-600 text-white px-3 py-2 rounded flex items-center gap-2"
-            >
-              <Plus size={14} /> Add Invoice
-            </button>
+            <div className="flex gap-3 items-center">
+              <button
+                onClick={() => setShowInvoiceFormFor(c.id)}
+                className="bg-blue-600 text-white px-3 py-2 rounded flex items-center gap-2"
+              >
+                <Plus size={14} /> Add Invoice
+              </button>
+
+              <button
+                onClick={() => deleteCompany(c.id)}
+                className="text-red-600"
+              >
+                <Trash size={18} />
+              </button>
+            </div>
           </div>
 
           {c.invoices.length === 0 && (
@@ -136,47 +174,77 @@ export default function CompaniesDashboard() {
 
             return (
               <div key={inv.id} className="border-t pt-3 mt-3">
+
                 <div
-                  className="flex items-center gap-2 cursor-pointer"
+                  className="flex items-center justify-between cursor-pointer"
                   onClick={() => toggleInvoice(inv.id)}
                 >
-                  {open ? <ChevronDown /> : <ChevronRight />}
-
-                  <div className="flex-1">
-                    <div className="font-medium">
-                      {inv.name} — ₹{inv.value}
+                  <div className="flex items-center gap-2">
+                    {open ? <ChevronDown /> : <ChevronRight />}
+                    <div>
+                      <div className="font-medium">
+                        {inv.name} — ₹{inv.value}
+                      </div>
+                      <div className="text-sm text-gray-500">{inv.date}</div>
                     </div>
-                    <div className="text-sm text-gray-500">{inv.date}</div>
                   </div>
 
-                  {inv.fileUrl && (
-                    <a
-                      href={inv.fileUrl}
-                      target="_blank"
-                      className="text-blue-600 text-sm"
-                      onClick={e => e.stopPropagation()}
+                  <div className="flex items-center gap-3">
+                    {inv.fileUrl && (
+                      <a
+                        href={inv.fileUrl}
+                        target="_blank"
+                        className="text-blue-600 text-sm"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        View PDF
+                      </a>
+                    )}
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteInvoice(c.id, inv.id);
+                      }}
+                      className="text-red-600"
                     >
-                      View PDF
-                    </a>
-                  )}
+                      <Trash size={16} />
+                    </button>
+                  </div>
                 </div>
 
                 {open && (
                   <div className="ml-6 mt-3">
-                    <BillForm onAdd={(data) => addBill(c.id, inv.id, data)} />
+                    <BillForm
+                      onAdd={(data) => addBill(c.id, inv.id, data)}
+                    />
 
                     {inv.bills.map((b: any) => (
-                      <div key={b.id} className="mt-2 text-sm">
-                        {b.name} — ₹{b.value} ({b.date})
-                        {b.fileUrl && (
-                          <a
-                            href={b.fileUrl}
-                            target="_blank"
-                            className="text-blue-600 ml-2"
-                          >
-                            PDF
-                          </a>
-                        )}
+                      <div
+                        key={b.id}
+                        className="mt-2 text-sm flex justify-between items-center"
+                      >
+                        <div>
+                          {b.name} — ₹{b.value} ({b.date})
+                          {b.fileUrl && (
+                            <a
+                              href={b.fileUrl}
+                              target="_blank"
+                              className="text-blue-600 ml-2"
+                            >
+                              PDF
+                            </a>
+                          )}
+                        </div>
+
+                        <button
+                          onClick={() =>
+                            deleteBill(c.id, inv.id, b.id)
+                          }
+                          className="text-red-600"
+                        >
+                          <Trash size={14} />
+                        </button>
                       </div>
                     ))}
                   </div>
