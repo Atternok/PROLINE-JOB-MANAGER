@@ -95,6 +95,7 @@ function CompaniesDashboard() {
     const [floor, setFloor] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [showAddCompany, setShowAddCompany] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [companyName, setCompanyName] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
+    const [companyRate, setCompanyRate] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
     const [expandedInvoices, setExpandedInvoices] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(new Set());
     const [showInvoiceFormFor, setShowInvoiceFormFor] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
@@ -111,17 +112,22 @@ function CompaniesDashboard() {
     const refresh = ()=>setFloor({
             ...floor
         });
+    // =========================
+    // ADD COMPANY
+    // =========================
     const addCompany = ()=>{
-        if (!companyName.trim()) return;
+        if (!companyName.trim() || !companyRate.trim()) return;
         floor.companies.push({
             id: Date.now().toString(),
             name: companyName,
             poNumber: "",
-            poValue: 0,
+            poValue: Number(companyRate),
+            poDate: "",
             invoices: []
         });
         refresh();
         setCompanyName("");
+        setCompanyRate("");
         setShowAddCompany(false);
     };
     const deleteCompany = (companyId)=>{
@@ -129,14 +135,26 @@ function CompaniesDashboard() {
         floor.companies = floor.companies.filter((c)=>c.id !== companyId);
         refresh();
     };
-    const toggleInvoice = (id)=>{
-        const s = new Set(expandedInvoices);
-        s.has(id) ? s.delete(id) : s.add(id);
-        setExpandedInvoices(s);
-    };
+    // =========================
+    // ADD INVOICE (STRICT LIMITS)
+    // =========================
     const addInvoice = (companyId, data)=>{
         const company = floor.companies.find((c)=>c.id === companyId);
         if (!company) return;
+        const currentInvoiceTotal = company.invoices.reduce((sum, inv)=>sum + inv.value, 0);
+        const remaining = company.poValue - currentInvoiceTotal;
+        if (remaining <= 0) {
+            alert("No remaining balance for this company.");
+            return;
+        }
+        if (data.value <= 0) {
+            alert("Invoice must be greater than 0.");
+            return;
+        }
+        if (data.value > remaining) {
+            alert(`Invoice exceeds remaining balance (₹${remaining}).`);
+            return;
+        }
         company.invoices.push({
             id: Date.now().toString(),
             ...data,
@@ -152,10 +170,27 @@ function CompaniesDashboard() {
         company.invoices = company.invoices.filter((i)=>i.id !== invoiceId);
         refresh();
     };
+    // =========================
+    // ADD BILL (STRICT LIMITS)
+    // =========================
     const addBill = (companyId, invoiceId, data)=>{
         const company = floor.companies.find((c)=>c.id === companyId);
         const invoice = company?.invoices.find((i)=>i.id === invoiceId);
         if (!invoice) return;
+        const currentBillTotal = invoice.bills.reduce((sum, b)=>sum + b.value, 0);
+        const remaining = invoice.value - currentBillTotal;
+        if (remaining <= 0) {
+            alert("No remaining balance for this invoice.");
+            return;
+        }
+        if (data.value <= 0) {
+            alert("Bill must be greater than 0.");
+            return;
+        }
+        if (data.value > remaining) {
+            alert(`Bill exceeds remaining invoice balance (₹${remaining}).`);
+            return;
+        }
         invoice.bills.push({
             id: Date.now().toString(),
             ...data
@@ -170,6 +205,11 @@ function CompaniesDashboard() {
         invoice.bills = invoice.bills.filter((b)=>b.id !== billId);
         refresh();
     };
+    const toggleInvoice = (id)=>{
+        const s = new Set(expandedInvoices);
+        s.has(id) ? s.delete(id) : s.add(id);
+        setExpandedInvoices(s);
+    };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "p-6 bg-gray-50 min-h-screen text-black",
         children: [
@@ -179,7 +219,7 @@ function CompaniesDashboard() {
                 children: "← Back"
             }, void 0, false, {
                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                lineNumber: 107,
+                lineNumber: 166,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -190,7 +230,7 @@ function CompaniesDashboard() {
                         children: floor.name
                     }, void 0, false, {
                         fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                        lineNumber: 115,
+                        lineNumber: 174,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -201,31 +241,25 @@ function CompaniesDashboard() {
                                 size: 16
                             }, void 0, false, {
                                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                lineNumber: 121,
+                                lineNumber: 180,
                                 columnNumber: 11
                             }, this),
                             " Add Company"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                        lineNumber: 117,
+                        lineNumber: 176,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                lineNumber: 114,
+                lineNumber: 173,
                 columnNumber: 7
             }, this),
-            floor.companies.length === 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "border rounded p-6 bg-white text-gray-500",
-                children: "No companies yet"
-            }, void 0, false, {
-                fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                lineNumber: 126,
-                columnNumber: 9
-            }, this),
-            floor.companies.map((c)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+            floor.companies.map((c)=>{
+                const invoiceTotal = c.invoices.reduce((s, i)=>s + i.value, 0);
+                return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "bg-white border rounded p-5 mb-6",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -238,25 +272,36 @@ function CompaniesDashboard() {
                                             children: c.name
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                            lineNumber: 136,
-                                            columnNumber: 15
+                                            lineNumber: 195,
+                                            columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                             className: "text-sm text-gray-500",
                                             children: [
-                                                "Invoices: ",
-                                                c.invoices.length
+                                                "Company Total: ₹",
+                                                c.poValue
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                            lineNumber: 137,
-                                            columnNumber: 15
+                                            lineNumber: 196,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                            className: "text-sm text-gray-500",
+                                            children: [
+                                                "Invoice Total: ₹",
+                                                invoiceTotal
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/components/CompaniesDashboard.tsx",
+                                            lineNumber: 199,
+                                            columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                    lineNumber: 135,
-                                    columnNumber: 13
+                                    lineNumber: 194,
+                                    columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "flex gap-3 items-center",
@@ -269,15 +314,15 @@ function CompaniesDashboard() {
                                                     size: 14
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                    lineNumber: 147,
-                                                    columnNumber: 17
+                                                    lineNumber: 209,
+                                                    columnNumber: 19
                                                 }, this),
                                                 " Add Invoice"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                            lineNumber: 143,
-                                            columnNumber: 15
+                                            lineNumber: 205,
+                                            columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                             onClick: ()=>deleteCompany(c.id),
@@ -286,32 +331,24 @@ function CompaniesDashboard() {
                                                 size: 18
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                lineNumber: 154,
-                                                columnNumber: 17
+                                                lineNumber: 216,
+                                                columnNumber: 19
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                            lineNumber: 150,
-                                            columnNumber: 15
+                                            lineNumber: 212,
+                                            columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                    lineNumber: 142,
-                                    columnNumber: 13
+                                    lineNumber: 204,
+                                    columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                            lineNumber: 134,
-                            columnNumber: 11
-                        }, this),
-                        c.invoices.length === 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                            className: "text-sm text-gray-500 mb-3",
-                            children: "No invoices yet"
-                        }, void 0, false, {
-                            fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                            lineNumber: 160,
+                            lineNumber: 193,
                             columnNumber: 13
                         }, this),
                         showInvoiceFormFor === c.id && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(InvoiceForm, {
@@ -319,11 +356,12 @@ function CompaniesDashboard() {
                             onAdd: (data)=>addInvoice(c.id, data)
                         }, void 0, false, {
                             fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                            lineNumber: 166,
-                            columnNumber: 13
+                            lineNumber: 222,
+                            columnNumber: 15
                         }, this),
                         c.invoices.map((inv)=>{
                             const open = expandedInvoices.has(inv.id);
+                            const billTotal = inv.bills.reduce((s, b)=>s + b.value, 0);
                             return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "border-t pt-3 mt-3",
                                 children: [
@@ -336,12 +374,12 @@ function CompaniesDashboard() {
                                                 children: [
                                                     open ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chevron$2d$down$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ChevronDown$3e$__["ChevronDown"], {}, void 0, false, {
                                                         fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                        lineNumber: 183,
-                                                        columnNumber: 29
+                                                        lineNumber: 243,
+                                                        columnNumber: 31
                                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chevron$2d$right$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ChevronRight$3e$__["ChevronRight"], {}, void 0, false, {
                                                         fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                        lineNumber: 183,
-                                                        columnNumber: 47
+                                                        lineNumber: 243,
+                                                        columnNumber: 49
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         children: [
@@ -354,72 +392,55 @@ function CompaniesDashboard() {
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                                lineNumber: 185,
-                                                                columnNumber: 23
+                                                                lineNumber: 245,
+                                                                columnNumber: 25
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                 className: "text-sm text-gray-500",
-                                                                children: inv.date
-                                                            }, void 0, false, {
+                                                                children: [
+                                                                    "Bill Total: ₹",
+                                                                    billTotal
+                                                                ]
+                                                            }, void 0, true, {
                                                                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                                lineNumber: 188,
-                                                                columnNumber: 23
+                                                                lineNumber: 248,
+                                                                columnNumber: 25
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                        lineNumber: 184,
-                                                        columnNumber: 21
-                                                    }, this)
-                                                ]
-                                            }, void 0, true, {
-                                                fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                lineNumber: 182,
-                                                columnNumber: 19
-                                            }, this),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "flex items-center gap-3",
-                                                children: [
-                                                    inv.fileUrl && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
-                                                        href: inv.fileUrl,
-                                                        target: "_blank",
-                                                        className: "text-blue-600 text-sm",
-                                                        onClick: (e)=>e.stopPropagation(),
-                                                        children: "View PDF"
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                        lineNumber: 194,
+                                                        lineNumber: 244,
                                                         columnNumber: 23
-                                                    }, this),
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                                        onClick: (e)=>{
-                                                            e.stopPropagation();
-                                                            deleteInvoice(c.id, inv.id);
-                                                        },
-                                                        className: "text-red-600",
-                                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$trash$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Trash$3e$__["Trash"], {
-                                                            size: 16
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                            lineNumber: 211,
-                                                            columnNumber: 23
-                                                        }, this)
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                        lineNumber: 204,
-                                                        columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                lineNumber: 192,
-                                                columnNumber: 19
+                                                lineNumber: 242,
+                                                columnNumber: 21
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                onClick: (e)=>{
+                                                    e.stopPropagation();
+                                                    deleteInvoice(c.id, inv.id);
+                                                },
+                                                className: "text-red-600",
+                                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$trash$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Trash$3e$__["Trash"], {
+                                                    size: 16
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/CompaniesDashboard.tsx",
+                                                    lineNumber: 261,
+                                                    columnNumber: 23
+                                                }, this)
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/CompaniesDashboard.tsx",
+                                                lineNumber: 254,
+                                                columnNumber: 21
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                        lineNumber: 178,
-                                        columnNumber: 17
+                                        lineNumber: 238,
+                                        columnNumber: 19
                                     }, this),
                                     open && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "ml-6 mt-3",
@@ -428,8 +449,8 @@ function CompaniesDashboard() {
                                                 onAdd: (data)=>addBill(c.id, inv.id, data)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                lineNumber: 218,
-                                                columnNumber: 21
+                                                lineNumber: 267,
+                                                columnNumber: 23
                                             }, this),
                                             inv.bills.map((b)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                     className: "mt-2 text-sm flex justify-between items-center",
@@ -441,22 +462,12 @@ function CompaniesDashboard() {
                                                                 b.value,
                                                                 " (",
                                                                 b.date,
-                                                                ")",
-                                                                b.fileUrl && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
-                                                                    href: b.fileUrl,
-                                                                    target: "_blank",
-                                                                    className: "text-blue-600 ml-2",
-                                                                    children: "PDF"
-                                                                }, void 0, false, {
-                                                                    fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                                    lineNumber: 230,
-                                                                    columnNumber: 29
-                                                                }, this)
+                                                                ")"
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                            lineNumber: 227,
-                                                            columnNumber: 25
+                                                            lineNumber: 278,
+                                                            columnNumber: 27
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                             onClick: ()=>deleteBill(c.id, inv.id, b.id),
@@ -465,39 +476,40 @@ function CompaniesDashboard() {
                                                                 size: 14
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                                lineNumber: 246,
-                                                                columnNumber: 27
+                                                                lineNumber: 288,
+                                                                columnNumber: 29
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                            lineNumber: 240,
-                                                            columnNumber: 25
+                                                            lineNumber: 282,
+                                                            columnNumber: 27
                                                         }, this)
                                                     ]
                                                 }, b.id, true, {
                                                     fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                                    lineNumber: 223,
-                                                    columnNumber: 23
+                                                    lineNumber: 274,
+                                                    columnNumber: 25
                                                 }, this))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                        lineNumber: 217,
-                                        columnNumber: 19
+                                        lineNumber: 266,
+                                        columnNumber: 21
                                     }, this)
                                 ]
                             }, inv.id, true, {
                                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                lineNumber: 176,
-                                columnNumber: 15
+                                lineNumber: 236,
+                                columnNumber: 17
                             }, this);
                         })
                     ]
                 }, c.id, true, {
                     fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                    lineNumber: 132,
-                    columnNumber: 9
-                }, this)),
+                    lineNumber: 191,
+                    columnNumber: 11
+                }, this);
+            }),
             showAddCompany && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "fixed inset-0 bg-black/50 flex items-center justify-center",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -508,17 +520,28 @@ function CompaniesDashboard() {
                             children: "Add Company"
                         }, void 0, false, {
                             fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                            lineNumber: 261,
+                            lineNumber: 304,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                            className: "border p-2 w-full text-black bg-white mb-4",
-                            placeholder: "Company name",
+                            className: "border p-2 w-full text-black bg-white mb-3",
+                            placeholder: "Company Name",
                             value: companyName,
                             onChange: (e)=>setCompanyName(e.target.value)
                         }, void 0, false, {
                             fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                            lineNumber: 263,
+                            lineNumber: 306,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                            type: "number",
+                            className: "border p-2 w-full text-black bg-white mb-4",
+                            placeholder: "Total Amount",
+                            value: companyRate,
+                            onChange: (e)=>setCompanyRate(e.target.value)
+                        }, void 0, false, {
+                            fileName: "[project]/src/components/CompaniesDashboard.tsx",
+                            lineNumber: 313,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -530,7 +553,7 @@ function CompaniesDashboard() {
                                     children: "Cancel"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                    lineNumber: 271,
+                                    lineNumber: 322,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -539,30 +562,30 @@ function CompaniesDashboard() {
                                     children: "Add"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                                    lineNumber: 277,
+                                    lineNumber: 328,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                            lineNumber: 270,
+                            lineNumber: 321,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                    lineNumber: 260,
+                    lineNumber: 303,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                lineNumber: 259,
+                lineNumber: 302,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/CompaniesDashboard.tsx",
-        lineNumber: 105,
+        lineNumber: 164,
         columnNumber: 5
     }, this);
 }
@@ -578,31 +601,31 @@ function InvoiceForm({ onAdd, onCancel }) {
                 className: "flex gap-2 flex-wrap mb-3",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                        className: "border p-2 text-black bg-white",
+                        className: "border p-2 bg-white",
                         placeholder: "Invoice Name",
                         onChange: (e)=>setName(e.target.value)
                     }, void 0, false, {
                         fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                        lineNumber: 300,
+                        lineNumber: 351,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
                         type: "number",
-                        className: "border p-2 text-black bg-white",
+                        className: "border p-2 bg-white",
                         placeholder: "Value",
                         onChange: (e)=>setValue(e.target.value)
                     }, void 0, false, {
                         fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                        lineNumber: 301,
+                        lineNumber: 352,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
                         type: "date",
-                        className: "border p-2 text-black bg-white",
+                        className: "border p-2 bg-white",
                         onChange: (e)=>setDate(e.target.value)
                     }, void 0, false, {
                         fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                        lineNumber: 302,
+                        lineNumber: 353,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -611,13 +634,13 @@ function InvoiceForm({ onAdd, onCancel }) {
                         onChange: (e)=>setFile(e.target.files?.[0] || null)
                     }, void 0, false, {
                         fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                        lineNumber: 303,
+                        lineNumber: 354,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                lineNumber: 299,
+                lineNumber: 350,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -629,7 +652,7 @@ function InvoiceForm({ onAdd, onCancel }) {
                         children: "Cancel"
                     }, void 0, false, {
                         fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                        lineNumber: 307,
+                        lineNumber: 358,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -643,19 +666,19 @@ function InvoiceForm({ onAdd, onCancel }) {
                         children: "Create Invoice"
                     }, void 0, false, {
                         fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                        lineNumber: 310,
+                        lineNumber: 361,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                lineNumber: 306,
+                lineNumber: 357,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/CompaniesDashboard.tsx",
-        lineNumber: 298,
+        lineNumber: 349,
         columnNumber: 5
     }, this);
 }
@@ -668,31 +691,31 @@ function BillForm({ onAdd }) {
         className: "flex gap-2 flex-wrap mt-2",
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                className: "border p-2 text-black bg-white",
+                className: "border p-2 bg-white",
                 placeholder: "Bill Name",
                 onChange: (e)=>setName(e.target.value)
             }, void 0, false, {
                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                lineNumber: 336,
+                lineNumber: 387,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
                 type: "number",
-                className: "border p-2 text-black bg-white",
+                className: "border p-2 bg-white",
                 placeholder: "Value",
                 onChange: (e)=>setValue(e.target.value)
             }, void 0, false, {
                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                lineNumber: 337,
+                lineNumber: 388,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
                 type: "date",
-                className: "border p-2 text-black bg-white",
+                className: "border p-2 bg-white",
                 onChange: (e)=>setDate(e.target.value)
             }, void 0, false, {
                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                lineNumber: 338,
+                lineNumber: 389,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -701,7 +724,7 @@ function BillForm({ onAdd }) {
                 onChange: (e)=>setFile(e.target.files?.[0] || null)
             }, void 0, false, {
                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                lineNumber: 339,
+                lineNumber: 390,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -715,13 +738,13 @@ function BillForm({ onAdd }) {
                 children: "+ Bill"
             }, void 0, false, {
                 fileName: "[project]/src/components/CompaniesDashboard.tsx",
-                lineNumber: 340,
+                lineNumber: 391,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/CompaniesDashboard.tsx",
-        lineNumber: 335,
+        lineNumber: 386,
         columnNumber: 5
     }, this);
 }

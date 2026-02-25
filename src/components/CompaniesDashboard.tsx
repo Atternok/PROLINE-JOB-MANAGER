@@ -12,12 +12,13 @@ export default function CompaniesDashboard() {
   const [floor, setFloor] = useState<any>(null);
   const [showAddCompany, setShowAddCompany] = useState(false);
   const [companyName, setCompanyName] = useState("");
+  const [companyRate, setCompanyRate] = useState("");
   const [expandedInvoices, setExpandedInvoices] = useState<Set<string>>(new Set());
   const [showInvoiceFormFor, setShowInvoiceFormFor] = useState<string | null>(null);
 
   useEffect(() => {
-    const b = mockBuildings.find(b => b.id === buildingId);
-    const f = b?.floors.find(fl => fl.id === floorId);
+    const b = mockBuildings.find((b) => b.id === buildingId);
+    const f = b?.floors.find((fl) => fl.id === floorId);
     if (f) setFloor({ ...f });
   }, [buildingId, floorId]);
 
@@ -25,19 +26,24 @@ export default function CompaniesDashboard() {
 
   const refresh = () => setFloor({ ...floor });
 
+  // =========================
+  // ADD COMPANY
+  // =========================
   const addCompany = () => {
-    if (!companyName.trim()) return;
+    if (!companyName.trim() || !companyRate.trim()) return;
 
     floor.companies.push({
       id: Date.now().toString(),
       name: companyName,
       poNumber: "",
-      poValue: 0,
+      poValue: Number(companyRate), // 🔥 CORRECT FIELD
+      poDate: "",
       invoices: []
     });
 
     refresh();
     setCompanyName("");
+    setCompanyRate("");
     setShowAddCompany(false);
   };
 
@@ -47,15 +53,34 @@ export default function CompaniesDashboard() {
     refresh();
   };
 
-  const toggleInvoice = (id: string) => {
-    const s = new Set(expandedInvoices);
-    s.has(id) ? s.delete(id) : s.add(id);
-    setExpandedInvoices(s);
-  };
-
+  // =========================
+  // ADD INVOICE (STRICT LIMITS)
+  // =========================
   const addInvoice = (companyId: string, data: any) => {
     const company = floor.companies.find((c: any) => c.id === companyId);
     if (!company) return;
+
+    const currentInvoiceTotal = company.invoices.reduce(
+      (sum: number, inv: any) => sum + inv.value,
+      0
+    );
+
+    const remaining = company.poValue - currentInvoiceTotal;
+
+    if (remaining <= 0) {
+      alert("No remaining balance for this company.");
+      return;
+    }
+
+    if (data.value <= 0) {
+      alert("Invoice must be greater than 0.");
+      return;
+    }
+
+    if (data.value > remaining) {
+      alert(`Invoice exceeds remaining balance (₹${remaining}).`);
+      return;
+    }
 
     company.invoices.push({
       id: Date.now().toString(),
@@ -69,18 +94,45 @@ export default function CompaniesDashboard() {
 
   const deleteInvoice = (companyId: string, invoiceId: string) => {
     if (!confirm("Delete this invoice?")) return;
-
     const company = floor.companies.find((c: any) => c.id === companyId);
     if (!company) return;
 
-    company.invoices = company.invoices.filter((i: any) => i.id !== invoiceId);
+    company.invoices = company.invoices.filter(
+      (i: any) => i.id !== invoiceId
+    );
+
     refresh();
   };
 
+  // =========================
+  // ADD BILL (STRICT LIMITS)
+  // =========================
   const addBill = (companyId: string, invoiceId: string, data: any) => {
     const company = floor.companies.find((c: any) => c.id === companyId);
     const invoice = company?.invoices.find((i: any) => i.id === invoiceId);
     if (!invoice) return;
+
+    const currentBillTotal = invoice.bills.reduce(
+      (sum: number, b: any) => sum + b.value,
+      0
+    );
+
+    const remaining = invoice.value - currentBillTotal;
+
+    if (remaining <= 0) {
+      alert("No remaining balance for this invoice.");
+      return;
+    }
+
+    if (data.value <= 0) {
+      alert("Bill must be greater than 0.");
+      return;
+    }
+
+    if (data.value > remaining) {
+      alert(`Bill exceeds remaining invoice balance (₹${remaining}).`);
+      return;
+    }
 
     invoice.bills.push({
       id: Date.now().toString(),
@@ -98,7 +150,14 @@ export default function CompaniesDashboard() {
     if (!invoice) return;
 
     invoice.bills = invoice.bills.filter((b: any) => b.id !== billId);
+
     refresh();
+  };
+
+  const toggleInvoice = (id: string) => {
+    const s = new Set(expandedInvoices);
+    s.has(id) ? s.delete(id) : s.add(id);
+    setExpandedInvoices(s);
   };
 
   return (
@@ -122,84 +181,75 @@ export default function CompaniesDashboard() {
         </button>
       </div>
 
-      {floor.companies.length === 0 && (
-        <div className="border rounded p-6 bg-white text-gray-500">
-          No companies yet
-        </div>
-      )}
+      {floor.companies.map((c: any) => {
+        const invoiceTotal = c.invoices.reduce(
+          (s: number, i: any) => s + i.value,
+          0
+        );
 
-      {floor.companies.map((c: any) => (
-        <div key={c.id} className="bg-white border rounded p-5 mb-6">
+        return (
+          <div key={c.id} className="bg-white border rounded p-5 mb-6">
 
-          <div className="flex justify-between items-center mb-3">
-            <div>
-              <h2 className="text-lg font-semibold uppercase">{c.name}</h2>
-              <p className="text-sm text-gray-500">
-                Invoices: {c.invoices.length}
-              </p>
-            </div>
+            <div className="flex justify-between items-center mb-3">
+              <div>
+                <h2 className="text-lg font-semibold uppercase">{c.name}</h2>
+                <p className="text-sm text-gray-500">
+                  Company Total: ₹{c.poValue}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Invoice Total: ₹{invoiceTotal}
+                </p>
+              </div>
 
-            <div className="flex gap-3 items-center">
-              <button
-                onClick={() => setShowInvoiceFormFor(c.id)}
-                className="bg-blue-600 text-white px-3 py-2 rounded flex items-center gap-2"
-              >
-                <Plus size={14} /> Add Invoice
-              </button>
-
-              <button
-                onClick={() => deleteCompany(c.id)}
-                className="text-red-600"
-              >
-                <Trash size={18} />
-              </button>
-            </div>
-          </div>
-
-          {c.invoices.length === 0 && (
-            <p className="text-sm text-gray-500 mb-3">
-              No invoices yet
-            </p>
-          )}
-
-          {showInvoiceFormFor === c.id && (
-            <InvoiceForm
-              onCancel={() => setShowInvoiceFormFor(null)}
-              onAdd={(data) => addInvoice(c.id, data)}
-            />
-          )}
-
-          {c.invoices.map((inv: any) => {
-            const open = expandedInvoices.has(inv.id);
-
-            return (
-              <div key={inv.id} className="border-t pt-3 mt-3">
-
-                <div
-                  className="flex items-center justify-between cursor-pointer"
-                  onClick={() => toggleInvoice(inv.id)}
+              <div className="flex gap-3 items-center">
+                <button
+                  onClick={() => setShowInvoiceFormFor(c.id)}
+                  className="bg-blue-600 text-white px-3 py-2 rounded flex items-center gap-2"
                 >
-                  <div className="flex items-center gap-2">
-                    {open ? <ChevronDown /> : <ChevronRight />}
-                    <div>
-                      <div className="font-medium">
-                        {inv.name} — ₹{inv.value}
-                      </div>
-                      <div className="text-sm text-gray-500">{inv.date}</div>
-                    </div>
-                  </div>
+                  <Plus size={14} /> Add Invoice
+                </button>
 
-                  <div className="flex items-center gap-3">
-                    {inv.fileUrl && (
-                      <a
-                        href={inv.fileUrl}
-                        target="_blank"
-                        className="text-blue-600 text-sm"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        View PDF
-                      </a>
-                    )}
+                <button
+                  onClick={() => deleteCompany(c.id)}
+                  className="text-red-600"
+                >
+                  <Trash size={18} />
+                </button>
+              </div>
+            </div>
+
+            {showInvoiceFormFor === c.id && (
+              <InvoiceForm
+                onCancel={() => setShowInvoiceFormFor(null)}
+                onAdd={(data: any) => addInvoice(c.id, data)}
+              />
+            )}
+
+            {c.invoices.map((inv: any) => {
+              const open = expandedInvoices.has(inv.id);
+              const billTotal = inv.bills.reduce(
+                (s: number, b: any) => s + b.value,
+                0
+              );
+
+              return (
+                <div key={inv.id} className="border-t pt-3 mt-3">
+
+                  <div
+                    className="flex items-center justify-between cursor-pointer"
+                    onClick={() => toggleInvoice(inv.id)}
+                  >
+                    <div className="flex items-center gap-2">
+                      {open ? <ChevronDown /> : <ChevronRight />}
+                      <div>
+                        <div className="font-medium">
+                          {inv.name} — ₹{inv.value}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Bill Total: ₹{billTotal}
+                        </div>
+                      </div>
+                    </div>
 
                     <button
                       onClick={(e) => {
@@ -211,49 +261,42 @@ export default function CompaniesDashboard() {
                       <Trash size={16} />
                     </button>
                   </div>
-                </div>
 
-                {open && (
-                  <div className="ml-6 mt-3">
-                    <BillForm
-                      onAdd={(data) => addBill(c.id, inv.id, data)}
-                    />
+                  {open && (
+                    <div className="ml-6 mt-3">
+                      <BillForm
+                        onAdd={(data: any) =>
+                          addBill(c.id, inv.id, data)
+                        }
+                      />
 
-                    {inv.bills.map((b: any) => (
-                      <div
-                        key={b.id}
-                        className="mt-2 text-sm flex justify-between items-center"
-                      >
-                        <div>
-                          {b.name} — ₹{b.value} ({b.date})
-                          {b.fileUrl && (
-                            <a
-                              href={b.fileUrl}
-                              target="_blank"
-                              className="text-blue-600 ml-2"
-                            >
-                              PDF
-                            </a>
-                          )}
-                        </div>
-
-                        <button
-                          onClick={() =>
-                            deleteBill(c.id, inv.id, b.id)
-                          }
-                          className="text-red-600"
+                      {inv.bills.map((b: any) => (
+                        <div
+                          key={b.id}
+                          className="mt-2 text-sm flex justify-between items-center"
                         >
-                          <Trash size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ))}
+                          <div>
+                            {b.name} — ₹{b.value} ({b.date})
+                          </div>
+
+                          <button
+                            onClick={() =>
+                              deleteBill(c.id, inv.id, b.id)
+                            }
+                            className="text-red-600"
+                          >
+                            <Trash size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
 
       {showAddCompany && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
@@ -261,10 +304,18 @@ export default function CompaniesDashboard() {
             <h2 className="font-semibold mb-4">Add Company</h2>
 
             <input
-              className="border p-2 w-full text-black bg-white mb-4"
-              placeholder="Company name"
+              className="border p-2 w-full text-black bg-white mb-3"
+              placeholder="Company Name"
               value={companyName}
-              onChange={e => setCompanyName(e.target.value)}
+              onChange={(e) => setCompanyName(e.target.value)}
+            />
+
+            <input
+              type="number"
+              className="border p-2 w-full text-black bg-white mb-4"
+              placeholder="Total Amount"
+              value={companyRate}
+              onChange={(e) => setCompanyRate(e.target.value)}
             />
 
             <div className="flex justify-end gap-2">
@@ -297,9 +348,9 @@ function InvoiceForm({ onAdd, onCancel }: any) {
   return (
     <div className="border rounded p-4 mb-4 bg-gray-50">
       <div className="flex gap-2 flex-wrap mb-3">
-        <input className="border p-2 text-black bg-white" placeholder="Invoice Name" onChange={e => setName(e.target.value)} />
-        <input type="number" className="border p-2 text-black bg-white" placeholder="Value" onChange={e => setValue(e.target.value)} />
-        <input type="date" className="border p-2 text-black bg-white" onChange={e => setDate(e.target.value)} />
+        <input className="border p-2 bg-white" placeholder="Invoice Name" onChange={e => setName(e.target.value)} />
+        <input type="number" className="border p-2 bg-white" placeholder="Value" onChange={e => setValue(e.target.value)} />
+        <input type="date" className="border p-2 bg-white" onChange={e => setDate(e.target.value)} />
         <input type="file" accept="application/pdf" onChange={e => setFile(e.target.files?.[0] || null)} />
       </div>
 
@@ -333,9 +384,9 @@ function BillForm({ onAdd }: any) {
 
   return (
     <div className="flex gap-2 flex-wrap mt-2">
-      <input className="border p-2 text-black bg-white" placeholder="Bill Name" onChange={e => setName(e.target.value)} />
-      <input type="number" className="border p-2 text-black bg-white" placeholder="Value" onChange={e => setValue(e.target.value)} />
-      <input type="date" className="border p-2 text-black bg-white" onChange={e => setDate(e.target.value)} />
+      <input className="border p-2 bg-white" placeholder="Bill Name" onChange={e => setName(e.target.value)} />
+      <input type="number" className="border p-2 bg-white" placeholder="Value" onChange={e => setValue(e.target.value)} />
+      <input type="date" className="border p-2 bg-white" onChange={e => setDate(e.target.value)} />
       <input type="file" accept="application/pdf" onChange={e => setFile(e.target.files?.[0] || null)} />
       <button
         onClick={() =>
