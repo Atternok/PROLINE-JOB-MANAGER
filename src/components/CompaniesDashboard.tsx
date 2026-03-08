@@ -1,14 +1,17 @@
+
 "use client";
-
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Plus, ChevronRight, ChevronDown, Trash } from "lucide-react";
-import { mockBuildings } from "../data/mockData";
+import { useEffect, useState } from "react";
 
-export default function CompaniesDashboard() {
-  const { buildingId, floorId } = useParams();
+export default function CompaniesDashboard({
+  buildingId,
+  floorId,
+}: {
+  buildingId: string;
+  floorId: string;
+}) {
   const router = useRouter();
-
   const [floor, setFloor] = useState<any>(null);
   const [showAddCompany, setShowAddCompany] = useState(false);
   const [companyName, setCompanyName] = useState("");
@@ -17,11 +20,18 @@ export default function CompaniesDashboard() {
   const [showInvoiceFormFor, setShowInvoiceFormFor] = useState<string | null>(null);
 
   useEffect(() => {
-    const b = mockBuildings.find((b) => b.id === buildingId);
-    const f = b?.floors.find((fl) => fl.id === floorId);
-    if (f) setFloor({ ...f });
-  }, [buildingId, floorId]);
+    const loadFloor = async () => {
+      const res = await fetch("/api/buildings");
+      const data = await res.json();
 
+      const b = data.find((b: any) => b.id === buildingId);
+      const f = b?.floors?.find((fl: any) => fl.id === floorId);
+
+      if (f) setFloor(f);
+    };
+
+    loadFloor();
+  }, [buildingId, floorId]);
   if (!floor) return null;
 
   const refresh = () => setFloor({ ...floor });
@@ -29,130 +39,149 @@ export default function CompaniesDashboard() {
   // =========================
   // ADD COMPANY
   // =========================
-  const addCompany = () => {
-    if (!companyName.trim() || !companyRate.trim()) return;
+ const addCompany = async () => {
+  if (!companyName.trim() || !companyRate.trim()) return;
 
-    floor.companies.push({
-      id: Date.now().toString(),
+  await fetch("/api/companies", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
       name: companyName,
-      poNumber: "",
-      poValue: Number(companyRate), // 🔥 CORRECT FIELD
-      poDate: "",
-      invoices: []
-    });
+      poValue: Number(companyRate),
+      floorId: floorId
+    })
+  });
 
-    refresh();
-    setCompanyName("");
-    setCompanyRate("");
-    setShowAddCompany(false);
-  };
+  window.location.reload();
+};
 
-  const deleteCompany = (companyId: string) => {
-    if (!confirm("Delete this company?")) return;
-    floor.companies = floor.companies.filter((c: any) => c.id !== companyId);
-    refresh();
-  };
+  const deleteCompany = async (companyId: string) => {
+  if (!confirm("Delete this company?")) return;
+
+  await fetch(`/api/companies/${companyId}`, {
+    method: "DELETE"
+  });
+
+  window.location.reload();
+};
 
   // =========================
   // ADD INVOICE (STRICT LIMITS)
   // =========================
-  const addInvoice = (companyId: string, data: any) => {
-    const company = floor.companies.find((c: any) => c.id === companyId);
-    if (!company) return;
+  const addInvoice = async (companyId: string, data: any) => {
+  const company = floor.companies.find((c: any) => c.id === companyId);
+  if (!company) return;
 
-    const currentInvoiceTotal = company.invoices.reduce(
-      (sum: number, inv: any) => sum + inv.value,
-      0
-    );
+  const currentInvoiceTotal = (company.invoices ?? []).reduce(
+    (sum: number, inv: any) => sum + inv.value,
+    0
+  );
 
-    const remaining = company.poValue - currentInvoiceTotal;
+  const remaining = company.poValue - currentInvoiceTotal;
 
-    if (remaining <= 0) {
-      alert("No remaining balance for this company.");
-      return;
-    }
+  if (remaining <= 0) {
+    alert("No remaining balance for this company.");
+    return;
+  }
 
-    if (data.value <= 0) {
-      alert("Invoice must be greater than 0.");
-      return;
-    }
+  if (data.value <= 0) {
+    alert("Invoice must be greater than 0.");
+    return;
+  }
 
-    if (data.value > remaining) {
-      alert(`Invoice exceeds remaining balance (₹${remaining}).`);
-      return;
-    }
+  if (data.value > remaining) {
+    alert(`Invoice exceeds remaining balance (₹${remaining}).`);
+    return;
+  }
 
-    company.invoices.push({
-      id: Date.now().toString(),
-      ...data,
-      bills: []
-    });
+  // ✅ if validation passes → save invoice
+  await fetch("/api/invoices", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      name: data.name,
+      value: data.value,
+      date: data.date,
+      fileUrl: data.fileUrl,
+      companyId: companyId
+    })
+  });
 
-    refresh();
-    setShowInvoiceFormFor(null);
-  };
+  window.location.reload();
+};
 
-  const deleteInvoice = (companyId: string, invoiceId: string) => {
-    if (!confirm("Delete this invoice?")) return;
-    const company = floor.companies.find((c: any) => c.id === companyId);
-    if (!company) return;
+  const deleteInvoice = async (companyId: string, invoiceId: string) => {
+  if (!confirm("Delete this invoice?")) return;
 
-    company.invoices = company.invoices.filter(
-      (i: any) => i.id !== invoiceId
-    );
+  await fetch(`/api/invoices/${invoiceId}`, {
+    method: "DELETE"
+  });
 
-    refresh();
-  };
-
+  window.location.reload();
+};
   // =========================
   // ADD BILL (STRICT LIMITS)
   // =========================
-  const addBill = (companyId: string, invoiceId: string, data: any) => {
-    const company = floor.companies.find((c: any) => c.id === companyId);
-    const invoice = company?.invoices.find((i: any) => i.id === invoiceId);
-    if (!invoice) return;
+  const addBill = async (companyId: string, invoiceId: string, data: any) => {
+  const company = floor.companies.find((c: any) => c.id === companyId);
+  const invoice = company?.invoices.find((i: any) => i.id === invoiceId);
+  if (!invoice) return;
 
-    const currentBillTotal = invoice.bills.reduce(
-      (sum: number, b: any) => sum + b.value,
-      0
-    );
+  const currentBillTotal = (invoice.bills ?? []).reduce(
+    (sum: number, b: any) => sum + b.value,
+    0
+  );
 
-    const remaining = invoice.value - currentBillTotal;
+  const remaining = invoice.value - currentBillTotal;
 
-    if (remaining <= 0) {
-      alert("No remaining balance for this invoice.");
-      return;
-    }
+  if (remaining <= 0) {
+    alert("No remaining balance for this invoice.");
+    return;
+  }
 
-    if (data.value <= 0) {
-      alert("Bill must be greater than 0.");
-      return;
-    }
+  if (data.value <= 0) {
+    alert("Bill must be greater than 0.");
+    return;
+  }
 
-    if (data.value > remaining) {
-      alert(`Bill exceeds remaining invoice balance (₹${remaining}).`);
-      return;
-    }
+  if (data.value > remaining) {
+    alert(`Bill exceeds remaining invoice balance (₹${remaining}).`);
+    return;
+  }
 
-    invoice.bills.push({
-      id: Date.now().toString(),
-      ...data
-    });
+  await fetch("/api/bills", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      name: data.name,
+      value: data.value,
+      date: data.date,
+      fileUrl: data.fileUrl,
+      invoiceId: invoiceId
+    })
+  });
 
-    refresh();
-  };
+  window.location.reload();
+};
+  const deleteBill = async (
+  companyId: string,
+  invoiceId: string,
+  billId: string
+) => {
+  if (!confirm("Delete this bill?")) return;
 
-  const deleteBill = (companyId: string, invoiceId: string, billId: string) => {
-    if (!confirm("Delete this bill?")) return;
+  await fetch(`/api/bills/${billId}`, {
+    method: "DELETE"
+  });
 
-    const company = floor.companies.find((c: any) => c.id === companyId);
-    const invoice = company?.invoices.find((i: any) => i.id === invoiceId);
-    if (!invoice) return;
-
-    invoice.bills = invoice.bills.filter((b: any) => b.id !== billId);
-
-    refresh();
-  };
+  window.location.reload();
+};
 
   const toggleInvoice = (id: string) => {
     const s = new Set(expandedInvoices);

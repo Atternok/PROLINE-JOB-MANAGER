@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Building {
+  id      String  @id @default(cuid())
+  name    String
+  floors  Floor[]
+}
+
+model Floor {
+  id         String   @id @default(cuid())
+  name       String
+  buildingId String
+  building   Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+
+  companies  Company[]
+}
+
+model Company {
+  id      String  @id @default(cuid())
+  name    String
+  poValue Float
+
+  floorId String
+  floor   Floor   @relation(fields: [floorId], references: [id], onDelete: Cascade)
+
+  invoices Invoice[]
+}
+
+model Invoice {
+  id        String  @id @default(cuid())
+  name      String
+  value     Float
+  date      String
+  fileUrl   String?
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  bills     Bill[]
+}
+
+model Bill {
+  id        String  @id @default(cuid())
+  name      String
+  value     Float
+  date      String
+  fileUrl   String?
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}

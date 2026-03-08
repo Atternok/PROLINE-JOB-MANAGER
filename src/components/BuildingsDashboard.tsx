@@ -1,45 +1,89 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash } from "lucide-react";
-import { mockBuildings } from "../data/mockData";
 
 export default function BuildingsDashboard() {
   const router = useRouter();
 
+  const [buildings, setBuildings] = useState<any[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [buildingName, setBuildingName] = useState("");
-  const [, forceUpdate] = useState({});
 
-  const refresh = () => forceUpdate({});
+  const loadBuildings = async () => {
+    try {
+      const res = await fetch("/api/buildings");
 
-  const addBuilding = () => {
+      if (!res.ok) {
+        console.error("API error");
+        return;
+      }
+
+      const data = await res.json();
+      setBuildings(data);
+    } catch (err) {
+      console.error("Failed to load buildings:", err);
+    }
+  };
+
+  useEffect(() => {
+    loadBuildings();
+  }, []);
+
+  const addBuilding = async () => {
     if (!buildingName.trim()) return;
 
-    mockBuildings.push({
-      id: Date.now().toString(),
-      name: buildingName,
-      floors: []
+    try {
+      const res = await fetch("/api/buildings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: buildingName
+        })
+      });
+
+      if (!res.ok) {
+        console.error("Failed to add building");
+        return;
+      }
+
+      setBuildingName("");
+      setShowAdd(false);
+      loadBuildings();
+    } catch (err) {
+      console.error("Add building failed:", err);
+    }
+  };
+
+const deleteBuilding = async (id: string) => {
+  if (!confirm("Delete this building?")) return;
+
+  try {
+    const res = await fetch(`/api/buildings/${id}`, {
+      method: "DELETE"
     });
 
-    setBuildingName("");
-    setShowAdd(false);
-    refresh();
-  };
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Delete failed:", text);
+      return;
+    }
 
-  const deleteBuilding = (id: string) => {
-    if (!confirm("Delete this building?")) return;
-    const index = mockBuildings.findIndex(b => b.id === id);
-    if (index !== -1) mockBuildings.splice(index, 1);
-    refresh();
-  };
+    // reload buildings after delete
+    loadBuildings();
 
+  } catch (err) {
+    console.error("Delete request error:", err);
+  }
+};
   const calculateCompanyPaid = (company: any) => {
-    return company.invoices.reduce((sum: number, inv: any) => {
+    return company.invoices?.reduce((sum: number, inv: any) => {
       return (
         sum +
-        inv.bills.reduce((bSum: number, b: any) => bSum + b.value, 0)
+        inv.bills?.reduce((bSum: number, b: any) => bSum + b.value, 0)
       );
     }, 0);
   };
@@ -53,12 +97,10 @@ export default function BuildingsDashboard() {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
 
-      {/* HEADER */}
       <div className="text-center bg-blue-600 text-white text-3xl font-bold py-6 rounded mb-8">
         JOB MANAGER
       </div>
 
-      {/* TOP BAR */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Buildings</h1>
 
@@ -70,15 +112,13 @@ export default function BuildingsDashboard() {
         </button>
       </div>
 
-      {/* EMPTY STATE */}
-      {mockBuildings.length === 0 && (
+      {buildings.length === 0 && (
         <div className="text-gray-500 bg-white p-6 rounded border">
           No buildings yet
         </div>
       )}
 
-      {/* BUILDINGS LIST */}
-      {mockBuildings.map((building: any) => (
+      {buildings.map((building: any) => (
         <div
           key={building.id}
           className="bg-white rounded shadow p-6 mb-6 cursor-pointer hover:shadow-lg transition"
@@ -100,15 +140,14 @@ export default function BuildingsDashboard() {
             </button>
           </div>
 
-          {/* FLOORS + COMPANY DASHBOARD */}
-          {building.floors.map((floor: any) => (
+          {building.floors?.map((floor: any) => (
             <div key={floor.id} className="mt-6">
               <h3 className="font-semibold mb-4">
                 {floor.name}
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {floor.companies.map((company: any) => {
+                {floor.companies?.map((company: any) => {
                   const percent = calculatePercentage(company);
 
                   return (
@@ -128,7 +167,6 @@ export default function BuildingsDashboard() {
                         </p>
                       </div>
 
-                      {/* Circular Progress */}
                       <div className="relative w-20 h-20">
                         <svg className="w-20 h-20 transform -rotate-90">
                           <circle
@@ -148,8 +186,7 @@ export default function BuildingsDashboard() {
                             fill="none"
                             strokeDasharray={2 * Math.PI * 35}
                             strokeDashoffset={
-                              2 * Math.PI * 35 *
-                              (1 - percent / 100)
+                              2 * Math.PI * 35 * (1 - percent / 100)
                             }
                             strokeLinecap="round"
                           />
@@ -168,7 +205,6 @@ export default function BuildingsDashboard() {
         </div>
       ))}
 
-      {/* ADD BUILDING MODAL */}
       {showAdd && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
           <div className="bg-white p-6 rounded w-[400px]">
@@ -188,6 +224,7 @@ export default function BuildingsDashboard() {
               >
                 Cancel
               </button>
+
               <button
                 onClick={addBuilding}
                 className="px-4 py-2 bg-blue-600 text-white"

@@ -1,49 +1,69 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 import { mockBuildings } from "../data/mockData";
 
 export function FloorsDashboard() {
   const { buildingId } = useParams();
   const router = useRouter();
-
   const [building, setBuilding] = useState<any>(null);
-  const [showAdd, setShowAdd] = useState(false);
   const [floorName, setFloorName] = useState("");
 
   useEffect(() => {
     const b = mockBuildings.find(b => b.id === buildingId);
-    if (b) setBuilding({ ...b });
+    if (b) setBuilding(b);
   }, [buildingId]);
 
-  if (!building) {
-    return (
-      <div className="p-6 text-black">
-        <h1 className="text-xl font-semibold">Building not found</h1>
-      </div>
-    );
-  }
+  if (!building) return null;
 
-  const addFloor = () => {
-    if (!floorName.trim()) return;
+  const refresh = () => setBuilding({ ...building });
 
-    building.floors.push({
-      id: Date.now().toString(),
-      name: floorName,
-      companies: []
+ const addFloor = async () => {
+  if (!floorName.trim()) return;
+
+  try {
+    const res = await fetch("/api/floors", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: floorName,
+        buildingId: building.id
+      })
     });
 
-    setBuilding({ ...building });
+    if (!res.ok) {
+      console.error("Failed to create floor");
+      return;
+    }
+
     setFloorName("");
-    setShowAdd(false);
-  };
+    setShowAddFloor(false);
+
+    // reload buildings so new floor appears
+    loadBuildings();
+
+  } catch (err) {
+    console.error("Create floor failed:", err);
+  }
+};
+
+  const deleteFloor = async (floorId: string) => {
+  if (!confirm("Delete this floor?")) return;
+
+  await fetch(`/api/floors/${floorId}`, {
+    method: "DELETE"
+  });
+
+  window.location.reload();
+};
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen text-black">
 
-      {/* BACK BUTTON */}
       <button
         onClick={() => router.push("/")}
         className="mb-4 text-blue-600 hover:underline"
@@ -53,62 +73,47 @@ export function FloorsDashboard() {
 
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">{building.name}</h1>
-
-        <button
-          onClick={() => setShowAdd(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2"
-        >
-          <Plus size={16} /> Add Floor
-        </button>
-      </div>
-
-      {building.floors.length === 0 && (
-        <div className="border rounded p-6 bg-white text-gray-500">
-          No floors yet
+        <div className="flex gap-2">
+          <input
+            className="border p-2 text-black bg-white"
+            placeholder="Floor name"
+            value={floorName}
+            onChange={e => setFloorName(e.target.value)}
+          />
+          <button
+            onClick={addFloor}
+            className="bg-blue-600 text-white px-4"
+          >
+            <Plus size={16} />
+          </button>
         </div>
-      )}
+      </div>
 
       {building.floors.map((f: any) => (
         <div
           key={f.id}
-          onClick={() =>
-            router.push(`/building/${building.id}/floor/${f.id}`)
-          }
-          className="border rounded p-4 mb-3 bg-white cursor-pointer hover:bg-gray-50"
+          className="border rounded p-4 mb-3 bg-white flex justify-between items-center"
         >
-          <div className="font-medium">{f.name}</div>
+          <div
+            onClick={() =>
+              router.push(`/building/${building.id}/floor/${f.id}`)
+            }
+            className="cursor-pointer font-medium"
+          >
+            {f.name}
+          </div>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteFloor(f.id);
+            }}
+            className="text-red-600"
+          >
+            <Trash size={18} />
+          </button>
         </div>
       ))}
-
-      {showAdd && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded w-[400px]">
-            <h2 className="font-semibold mb-4">Add Floor</h2>
-
-            <input
-              className="border p-2 w-full text-black bg-white mb-4"
-              placeholder="Floor name"
-              value={floorName}
-              onChange={e => setFloorName(e.target.value)}
-            />
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowAdd(false)}
-                className="px-4 py-2 bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={addFloor}
-                className="px-4 py-2 bg-blue-600 text-white"
-              >
-                Add
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

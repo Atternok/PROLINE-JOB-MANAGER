@@ -1,4 +1,13 @@
 {
+  "/api/bills/route": "app/api/bills/route.js",
+  "/api/buildings/[id]/route": "app/api/buildings/[id]/route.js",
+  "/api/buildings/route": "app/api/buildings/route.js",
+  "/api/companies/[id]/route": "app/api/companies/[id]/route.js",
+  "/api/companies/route": "app/api/companies/route.js",
+  "/api/floors/[id]/route": "app/api/floors/[id]/route.js",
+  "/api/floors/route": "app/api/floors/route.js",
+  "/api/invoices/[id]/route": "app/api/invoices/[id]/route.js",
+  "/api/invoices/route": "app/api/invoices/route.js",
   "/building/[buildingId]/floor/[floorId]/page": "app/building/[buildingId]/floor/[floorId]/page.js",
   "/building/[buildingId]/page": "app/building/[buildingId]/page.js",
   "/page": "app/page.js"
